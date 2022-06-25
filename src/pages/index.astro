@@ -8,9 +8,9 @@ import BlogPostPreview from '../components/BlogPostPreview.astro';
 // You can write any JavaScript/TypeScript that you'd like here.
 // It will run during the build, but never in the browser.
 // All variables are available to use in the HTML template below.
-let title = 'Example Blog';
-let description = 'The perfect starter for your perfect blog.';
-let permalink = 'https://example.com/';
+let title = "Toan Ho";
+let description = 'Write anything I learnt.';
+let permalink = 'https://toanbku.com';
 
 // Data Fetching: List all Markdown posts in the repo.
 
@@ -74,5 +74,22 @@ allPosts = allPosts.sort((a, b) => new Date(b.frontmatter.publishDate).valueOf()
 				</section>
 			</main>
 		</div>
+
+		<script src="https://giscus.app/client.js"
+			data-repo="toanbku/blog"
+			data-repo-id="R_kgDOHjvYZA"
+			data-category="Announcements"
+			data-category-id="DIC_kwDOHjvYZM4CP3xa"
+			data-mapping="pathname"
+			data-reactions-enabled="1"
+			data-emit-metadata="1"
+			data-input-position="top"
+			data-theme="light"
+			data-lang="en"
+			data-loading="lazy"
+			crossorigin="anonymous"
+			async
+			/>
+
 	</body>
 </html>
