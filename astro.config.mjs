@@ -1,7 +1,25 @@
-import { defineConfig } from 'astro/config';
-import preact from '@astrojs/preact';
+import { defineConfig } from "astro/config";
+import { astroImageTools } from "astro-imagetools";
+import preact from "@astrojs/preact";
 
 // https://astro.build/config
 export default defineConfig({
-	integrations: [preact()],
+  publicDir: "./public",
+  outDir: "./dist",
+  vite: {
+    plugins: [
+      {
+        name: "import.meta.url-transformer",
+        transform: (code, id) => {
+          if (id.endsWith(".astro"))
+            return code.replace(/import.meta.url/g, `"${id}"`);
+        },
+      },
+    ],
+    ssr: {
+      external: ["svgo"],
+    },
+  },
+  experimental: { integrations: true },
+  integrations: [preact(), astroImageTools],
 });

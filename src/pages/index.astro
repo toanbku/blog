@@ -1,5 +1,6 @@
 ---
 // Component Imports
+import { getTableData } from '@jcha0713/astro-notion/api'
 import BaseHead from '../components/BaseHead.astro';
 import BlogHeader from '../components/BlogHeader.astro';
 import BlogPostPreview from '../components/BlogPostPreview.astro';
@@ -14,8 +15,13 @@ let permalink = 'https://toanbku.com';
 
 // Data Fetching: List all Markdown posts in the repo.
 
-let allPosts = await Astro.glob('./posts/*.md');
-allPosts = allPosts.sort((a, b) => new Date(b.frontmatter.publishDate).valueOf() - new Date(a.frontmatter.publishDate).valueOf());
+const data = await getTableData();
+const sortedPosts = data.sort(
+  (a, b) =>
+    new Date(b.date.created).valueOf() -
+    new Date(a.date.created).valueOf()
+)
+
 
 // Full Astro Component Syntax:
 // https://docs.astro.build/core-concepts/astro-components/
@@ -70,7 +76,7 @@ allPosts = allPosts.sort((a, b) => new Date(b.frontmatter.publishDate).valueOf()
 					<p>{description}</p>
 				</section>
 				<section aria-label="Blog post list">
-					{allPosts.map((p) => <BlogPostPreview post={p} />)}
+					{sortedPosts.map((p) => <BlogPostPreview post={p} />)}
 				</section>
 			</main>
 		</div>

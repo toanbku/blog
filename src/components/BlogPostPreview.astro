@@ -4,15 +4,20 @@ export interface Props {
 }
 
 const { post } = Astro.props;
+const postUrl = post.url;
+const postPath = '/posts/';
+const [endpoint] = new URL(postUrl).pathname
+  .split('/')
+  .filter((str) => str.length > 0);
 ---
 
 <article class="post-preview">
 	<header>
-		<p class="publish-date">{post.frontmatter.publishDate}</p>
-		<a href={post.url}><h1 class="title">{post.frontmatter.title}</h1></a>
+		<p class="publish-date">{post.date.created}</p>
+		<a href={postPath + endpoint}><h1 class="title">{post.properties.title}</h1></a>
 	</header>
-	<p>{post.frontmatter.description}</p>
-	<a href={post.url}>Read more</a>
+	<p>{post.properties.description}</p>
+	<a href={postPath + endpoint}>Read more</a>
 </article>
 
 <style>

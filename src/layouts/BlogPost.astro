@@ -1,24 +1,27 @@
 ---
+import { Notion } from '@jcha0713/astro-notion/components';
 import BaseHead from '../components/BaseHead.astro';
 import BlogHeader from '../components/BlogHeader.astro';
 import BlogPost from '../components/BlogPost.astro';
 
 
-const { content } = Astro.props;
-const { title, description, publishDate, author, heroImage, permalink, alt, twitterLink } = content;
+const { pages, pageData, postUrl, blocks } = Astro.props;
+const { title, description } = pageData.properties;
 ---
 
-<html lang={content.lang || 'en'}>
+<html lang={'en'}>
 	<head>
 		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prism-themes@1.9.0/themes/prism-lucario.css"/>
-		<BaseHead {title} {description} {permalink} />
+		<BaseHead {title} {description} />
 	</head>
 
 	<body>
 		<BlogHeader />
 		<div class="wrapper">
-			<BlogPost {title} {author} {heroImage} {publishDate} {alt} {twitterLink}>
+			<BlogPost {title}>
 				<slot />
+				<Notion {blocks} />
+
 			</BlogPost>
 
 			<script
@@ -33,7 +36,6 @@ const { title, description, publishDate, author, heroImage, permalink, alt, twit
 				data-input-position="top"
 				data-theme="light"
 				data-lang="en"
-				data-loading="lazy"
 				crossorigin="anonymous"
 				async
 			/>

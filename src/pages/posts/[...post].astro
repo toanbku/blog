@@ -1,0 +1,20 @@
+---
+import BlogPost from '../../layouts/BlogPost.astro';
+import BlogHeader from '../../components/BlogHeader.astro';
+import { generateStaticPaths } from '@jcha0713/astro-notion/api';
+export async function getStaticPaths() {
+  const data = await generateStaticPaths();
+  return data;
+}
+const { post: postUrl } = Astro.params;
+const { pages, pageData, blocks } = Astro.props;
+---
+
+<BlogPost {pages} {pageData} {postUrl} {blocks}>
+</BlogPost>
+
+<style lang="scss">
+  article > * {
+    line-height: 1.625;
+  }
+</style>
