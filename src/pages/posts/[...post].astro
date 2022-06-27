@@ -10,8 +10,7 @@ const { post: postUrl } = Astro.params;
 const { pages, pageData, blocks } = Astro.props;
 ---
 
-<BlogPost {pages} {pageData} {postUrl} {blocks}>
-</BlogPost>
+<BlogPost {pages} {pageData} {postUrl} {blocks} />
 
 <style lang="scss">
   article > * {
