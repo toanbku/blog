@@ -1,9 +1,5 @@
 # Personal Blog bases on Astro
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/withastro/astro/tree/latest/examples/blog)
-
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
-
 Features:
 
 - ✅ SEO-friendly setup with canonical URLs and OpenGraph data
