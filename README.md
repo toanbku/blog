@@ -23,7 +23,6 @@ Inside of your Astro project, you'll see the following folders and files:
 ├── sandbox.config.json
 ├── src
 │   ├── components
-│   │   ├── Author.astro
 │   │   ├── BaseHead.astro
 │   │   ├── BlogHeader.astro
 │   │   ├── BlogPost.astro
