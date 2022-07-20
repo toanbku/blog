@@ -4,8 +4,7 @@ import BaseHead from '../components/BaseHead.astro';
 import BlogHeader from '../components/BlogHeader.astro';
 import BlogPost from '../components/BlogPost.astro';
 
-
-const { pages, pageData, postUrl, blocks } = Astro.props;
+const { pageData, blocks } = Astro.props;
 const { title, description } = pageData.properties;
 ---
 
@@ -19,9 +18,7 @@ const { title, description } = pageData.properties;
 		<BlogHeader />
 		<div class="wrapper">
 			<BlogPost {title}>
-				<slot />
 				<Notion {blocks} />
-
 			</BlogPost>
 
 			<script

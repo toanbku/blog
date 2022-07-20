@@ -1,6 +1,5 @@
 ---
 import BlogPost from '../../layouts/BlogPost.astro';
-import BlogHeader from '../../components/BlogHeader.astro';
 import { generateStaticPaths } from '@jcha0713/astro-notion/api';
 export async function getStaticPaths() {
   const data = await generateStaticPaths();
