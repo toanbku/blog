@@ -1,29 +1,36 @@
 import { defineConfig } from "astro/config";
-import { astroImageTools } from "astro-imagetools";
-import preact from "@astrojs/preact";
 import tailwind from "@astrojs/tailwind";
+import react from "@astrojs/react";
+import remarkToc from "remark-toc";
+import remarkCollapse from "remark-collapse";
+import sitemap from "@astrojs/sitemap";
 
 // https://astro.build/config
 export default defineConfig({
-  publicDir: "./public",
-  outDir: "./dist",
-  vite: {
-    plugins: [
-      {
-        name: "import.meta.url-transformer",
-        transform: (code, id) => {
-          if (id.endsWith(".astro"))
-            return code.replace(/import.meta.url/g, `"${id}"`);
-        },
+  site: "https://astro-paper.pages.dev/",
+  integrations: [
+    tailwind({
+      config: {
+        applyBaseStyles: false,
       },
+    }),
+    react(),
+    sitemap(),
+  ],
+  markdown: {
+    remarkPlugins: [
+      remarkToc,
+      [
+        remarkCollapse,
+        {
+          test: "Table of contents",
+        },
+      ],
     ],
-    ssr: {
-      external: ["svgo"],
-      noExternal: ["astro", "@astrojs/image", "astro-imagetools"],
+    shikiConfig: {
+      theme: "one-dark-pro",
+      wrap: true,
     },
+    extendDefaultPlugins: true,
   },
-  experimental: {
-    integrations: true,
-  },
-  integrations: [preact(), astroImageTools, tailwind()],
 });
