@@ -1,11 +1,20 @@
 {
-  "arrowParens": "avoid",
-  "semi": true,
+  "singleQuote": true,
+  "jsxSingleQuote": true,
+  "semi": false,
+  "useTabs": false,
   "tabWidth": 2,
-  "printWidth": 80,
-  "singleQuote": false,
-  "jsxSingleQuote": false,
-  "trailingComma": "es5",
   "bracketSpacing": true,
-  "endOfLine": "lf"
+  "bracketSameLine": false,
+  "arrowParens": "always",
+  "trailingComma": "none",
+  "importOrder": [
+    "^(react/(.*)$)|^(react$)|^(next/(.*)$)|^(next$)",
+    "<THIRD_PARTY_MODULES>",
+    "^(@/lib/(.*)$)|^(@/components/(.*)$)|^(@/styles/(.*)$)",
+    "^[./]"
+  ],
+  "importOrderSeparation": true,
+  "importOrderSortSpecifiers": true,
+  "importOrderGroupNamespaceSpecifiers": true
 }

@@ -1,12 +1,9 @@
-# Ignore everything
-/*
+.snapshots/
+build/
+dist/
+node_modules/
+.next/
+.vercel/
 
-# Except these files & folders
-!/src
-!/public
-!/.github
-!tsconfig.json
-!astro.config.mjs
-!package.json
-!.prettierrc
-!.eslintrc.json
+.demo/
+.renderer/
