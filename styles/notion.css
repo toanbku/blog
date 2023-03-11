@@ -374,3 +374,27 @@
 .notion-block-260baa77f1e1428b97fb14ac99c7c385 {
   display: none;
 }
+
+.notion-quote {
+  padding: 0.2em 0.75em;
+  font-size: 1.1em;
+}
+
+.notion-h1,
+.notion-h2,
+.notion-h3 {
+  margin-bottom: 0.5em;
+}
+
+.notion-callout {
+  margin-bottom: 0.5em;
+}
+
+.notion-hr {
+  margin: 2em 0;
+}
+
+.notion-dark .notion-collection-card {
+  border: 1px solid var(--fg-color-0);
+  box-shadow: unset;
+}
