@@ -23,6 +23,7 @@ import { Footer } from './Footer'
 import { Loading } from './Loading'
 import { NotionPageHeader } from './NotionPageHeader'
 import { Page404 } from './Page404'
+import { PageAside } from './PageAside'
 import { PageHead } from './PageHead'
 import { ReactUtterances } from './ReactUtterances'
 import styles from './styles.module.css'
@@ -34,7 +35,7 @@ import styles from './styles.module.css'
 const Code = dynamic(() =>
   import('react-notion-x/build/third-party/code').then(async (m) => {
     // add / remove any prism syntaxes here
-    await Promise.all([
+    await Promise.allSettled([
       import('prismjs/components/prism-markup-templating.js'),
       import('prismjs/components/prism-markup.js'),
       import('prismjs/components/prism-bash.js'),
@@ -192,6 +193,13 @@ export const NotionPage: React.FC<types.PageProps> = ({
   const showTableOfContents = !!isBlogPost
   const minTableOfContentsItems = 3
 
+  const pageAside = React.useMemo(
+    () => (
+      <PageAside block={block} recordMap={recordMap} isBlogPost={isBlogPost} />
+    ),
+    [block, recordMap, isBlogPost]
+  )
+
   const footer = React.useMemo(() => <Footer />, [])
 
   if (router.isFallback) {
@@ -203,6 +211,14 @@ export const NotionPage: React.FC<types.PageProps> = ({
   }
 
   const title = getBlockTitle(block, recordMap) || site.name
+
+  console.log('notion page', {
+    isDev: config.isDev,
+    title,
+    pageId,
+    rootNotionPageId: site.rootNotionPageId,
+    recordMap
+  })
 
   if (!config.isServer) {
     // add important objects to the window global for easy debugging
@@ -277,6 +293,7 @@ export const NotionPage: React.FC<types.PageProps> = ({
         pageFooter={comments}
         searchNotion={config.isSearchEnabled ? searchNotion : null}
         footer={footer}
+        pageAside={pageAside}
       />
     </>
   )
