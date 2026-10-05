@@ -25,3 +25,8 @@ export default function LiveSince({ from, label }: { from: string; label: string
     </div>
   )
 }
+
+export function DayCount({ from }: { from: string }) {
+  const now = useNow()
+  return <b className='mono'>{now ? `day ${since(from, now).d + 1}` : 'day —'}</b>
+}

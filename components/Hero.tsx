@@ -2,10 +2,9 @@
 
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { ARCHIVE_URL, LAST_POST, drafts, excuses, posts, socials } from '@/lib/content'
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
+import { ARCHIVE_URL, books, drafts, excuses, quotes, statusLabel } from '@/lib/content'
 import type { BlockSpec, Bounds } from './Scene'
-import { pad2, since, useNow } from './useNow'
 
 const Scene = dynamic(() => import('./Scene'), { ssr: false })
 
@@ -13,18 +12,19 @@ const PALETTE = [
   { color: '#F6F0E3', ink: '#1B1814' },
   { color: '#F6F0E3', ink: '#1B1814' },
   { color: '#FF5A1F', ink: '#FFF4E8' },
-  { color: '#C3B6FF', ink: '#1B1814' },
+  { color: '#FFC93C', ink: '#1B1814' },
   { color: '#2F5BFF', ink: '#F2F4FF' },
   { color: '#1B1814', ink: '#F6F0E3' },
   { color: '#FF9EC0', ink: '#1B1814' },
-  { color: '#93D9B5', ink: '#1B1814' }
+  { color: '#93D9B5', ink: '#1B1814' },
+  { color: '#C3B6FF', ink: '#1B1814' }
 ]
-const GOLD = { color: '#FFC23D', ink: '#1B1814' }
 
 let uid = 0
 let draftNo = 0
 const rand = (a: number, b: number) => a + Math.random() * (b - a)
 const pick = <T,>(xs: readonly T[]) => xs[Math.floor(Math.random() * xs.length)]
+const pad3 = (n: number) => String(n).padStart(3, '0')
 
 function shuffle<T>(xs: readonly T[]) {
   const a = [...xs]
@@ -35,38 +35,38 @@ function shuffle<T>(xs: readonly T[]) {
   return a
 }
 
+function spawnPos(b: Bounds, y: number): [number, number, number] {
+  return [rand(-b.w + 1.6, b.w - 1.6), y, rand(-b.d + 1, b.d - 1)]
+}
+
 function makeDraft(bounds: Bounds, y: number, title = pick(drafts)): BlockSpec {
-  const tone = pick(PALETTE)
   const year = 2022 + Math.floor(Math.random() * 5)
   return {
     id: uid++,
     kind: 'draft',
     title,
     tag: `DRAFT ${pad3(++draftNo)} · ${year}`,
-    ...tone,
+    ...pick(PALETTE),
     size: [rand(2.0, 2.6), rand(0.26, 0.38), rand(1.15, 1.45)],
     position: spawnPos(bounds, y),
     rotation: [rand(-0.6, 0.6), rand(-Math.PI, Math.PI), rand(-0.6, 0.6)]
   }
 }
 
-function makePost(bounds: Bounds, y: number, i: number): BlockSpec {
+function makeBook(bounds: Bounds, y: number, i: number): BlockSpec {
+  const b = books[i]
   return {
     id: uid++,
-    kind: 'post',
-    title: posts[i].title,
-    tag: `PUBLISHED · ${posts[i].date.toUpperCase()}`,
-    ...GOLD,
-    size: [2.6, 0.4, 1.45],
+    kind: 'book',
+    title: b.title,
+    author: b.author,
+    tag: statusLabel[b.status].toUpperCase(),
+    color: b.color,
+    ink: b.ink,
+    size: [1.5, rand(0.34, 0.5), 2.1],
     position: spawnPos(bounds, y),
     rotation: [rand(-0.4, 0.4), rand(-Math.PI, Math.PI), rand(-0.4, 0.4)]
   }
-}
-
-const pad3 = (n: number) => String(n).padStart(3, '0')
-
-function spawnPos(b: Bounds, y: number): [number, number, number] {
-  return [rand(-b.w + 1.6, b.w - 1.6), y, rand(-b.d + 1, b.d - 1)]
 }
 
 function measure(el: HTMLElement): Bounds {
@@ -76,20 +76,29 @@ function measure(el: HTMLElement): Bounds {
   return { w: Math.round(w * 2) / 2, d: aspect < 1 ? 3.6 : 2.7 }
 }
 
+// Drafts first, books dropped in over the second half so they land on top.
 function initialPile(b: Bounds) {
-  const count = Math.round(b.w * b.d * 1.4)
+  const count = Math.round(b.w * b.d * 1.15)
   const titles = shuffle(drafts)
+  const total = count + books.length
+  const bookSlots = books.map((_, i) => Math.round(total * (0.45 + (0.55 * i) / books.length)))
   const pile: BlockSpec[] = []
-  const postSlots = [0.15, 0.4, 0.62].map((f) => Math.round(f * count))
-  for (let i = 0, p = 0; i < count + posts.length; i++) {
+  for (let i = 0, k = 0, n = 0; i < total; i++) {
     const y = 7 + i * 0.75
-    if (p < posts.length && i === postSlots[p] + p) pile.push(makePost(b, y, p++))
-    else pile.push(makeDraft(b, y, titles[i % titles.length]))
+    if (k < books.length && i >= bookSlots[k]) pile.push(makeBook(b, y, k++))
+    else pile.push(makeDraft(b, y, titles[n++ % titles.length]))
   }
   return pile
 }
 
-type Toast = { key: number; text: string; href?: string; link?: string }
+// "plain *italic* plain" → nodes
+function emphasize(text: string) {
+  return text
+    .split('*')
+    .map((part, i) => (i % 2 ? <em key={i}>{part}</em> : <Fragment key={i}>{part}</Fragment>))
+}
+
+type Toast = { key: number; text: string }
 
 export default function Hero() {
   const heroRef = useRef<HTMLElement>(null)
@@ -97,25 +106,23 @@ export default function Hero() {
   const [bounds, setBounds] = useState<Bounds | null>(null)
   const [blocks, setBlocks] = useState<BlockSpec[]>([])
   const [shake, setShake] = useState(0)
-  const [found, setFound] = useState<string[]>([])
   const [active, setActive] = useState(true)
   const [toast, setToast] = useState<Toast | null>(null)
+  const [quoteIdx, setQuoteIdx] = useState(0)
   const [pubOffset, setPubOffset] = useState({ x: 0, y: 0 })
   const dodges = useRef(0)
   const excuseIdx = useRef(0)
   const toastTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
   const blocksRef = useRef(blocks)
-  const foundRef = useRef(found)
 
   useEffect(() => {
     blocksRef.current = blocks
-    foundRef.current = found
-  }, [blocks, found])
+  }, [blocks])
 
-  const say = useCallback((text: string, extra?: Pick<Toast, 'href' | 'link'>) => {
+  const say = useCallback((text: string) => {
     clearTimeout(toastTimer.current)
-    setToast({ key: Date.now(), text, ...extra })
-    toastTimer.current = setTimeout(() => setToast(null), extra?.href ? 5200 : 3400)
+    setToast({ key: Date.now(), text })
+    toastTimer.current = setTimeout(() => setToast(null), 3600)
   }, [])
 
   // Size the play area to the hero; build the first pile once we know it.
@@ -141,13 +148,13 @@ export default function Hero() {
   const addDraft = useCallback(
     (title?: string) => {
       if (!bounds) return
-      const cap = Math.round(bounds.w * bounds.d * 3.4)
+      const cap = Math.round(bounds.w * bounds.d * 3)
       setBlocks((prev) => {
         const next = [...prev, makeDraft(bounds, 11, title)]
         const extra = next.length - cap
         if (extra <= 0) return next
         let dropped = 0
-        return next.filter((b) => b.kind === 'post' || dropped++ >= extra)
+        return next.filter((b) => b.kind === 'book' || dropped++ >= extra)
       })
     },
     [bounds]
@@ -156,22 +163,10 @@ export default function Hero() {
   const onBlockClick = useCallback(
     (id: number) => {
       const b = blocksRef.current.find((x) => x.id === id)
-      if (!b || b.kind !== 'post') return
-      const already = foundRef.current
-      if (already.includes(b.title)) {
-        say('Already found that one. Two left? Keep digging.')
-        return
-      }
-      const next = [...already, b.title]
-      setFound(next)
-      if (next.length === posts.length) {
-        say('All 3 found. That’s the entire blog. Thanks for reading!', {
-          href: ARCHIVE_URL,
-          link: 'Read them'
-        })
-      } else {
-        say(`Found ${next.length}/3 — “${b.title}”`, { href: ARCHIVE_URL, link: 'Read it' })
-      }
+      if (!b || b.kind !== 'book') return
+      const book = books.find((x) => x.title === b.title)
+      if (!book) return
+      say(`${statusLabel[book.status]}: “${book.title}”${book.author ? ` — ${book.author}` : ''}`)
     },
     [say]
   )
@@ -220,15 +215,14 @@ export default function Hero() {
     return () => window.removeEventListener('pointermove', onMove)
   }, [pubOffset, say])
 
-  const now = useNow()
-  const t = now ? since(LAST_POST, now) : null
+  const quote = quotes[quoteIdx]
 
   return (
     <section ref={heroRef} className='hero' aria-label='Intro'>
       <div
         className='hero-canvas'
         role='img'
-        aria-label='A pile of unfinished blog drafts you can drag around'
+        aria-label='A pile of unfinished blog drafts and the books I am reading'
       >
         {bounds && (
           <Scene
@@ -248,44 +242,47 @@ export default function Hero() {
             Toan Ho
           </Link>
           <nav className='nav'>
+            <a href='#books'>Books</a>
+            <a href='#changelog'>Changelog</a>
             <a href={ARCHIVE_URL} target='_blank' rel='noreferrer'>
               Archive<sup>3</sup>
             </a>
-            {socials.slice(0, 2).map((s) => (
-              <a key={s.label} href={s.href} target='_blank' rel='noreferrer'>
-                {s.label}
-              </a>
-            ))}
           </nav>
         </header>
 
         <div className='hero-copy'>
-          <p className='eyebrow'>
-            <span className='dot' /> A blog, technically · est. 2022
-          </p>
-          <h1>
-            Built it <em>five</em> times.
-            <br />
-            Wrote <em>three</em> posts.
-          </h1>
+          <figure className='quote' key={quoteIdx}>
+            <blockquote>
+              <p className={quote.text.length > 60 ? 'long' : ''}>
+                <span className='mark' aria-hidden>
+                  “
+                </span>
+                {emphasize(quote.text)}
+              </p>
+            </blockquote>
+            <figcaption>
+              <span className='dash' aria-hidden />
+              <span>
+                {quote.by}
+                {quote.source && <cite>, {quote.source}</cite>}
+              </span>
+              <button
+                type='button'
+                className='next-quote'
+                onClick={() => setQuoteIdx((i) => (i + 1) % quotes.length)}
+              >
+                ↻ Another one
+              </button>
+            </figcaption>
+          </figure>
           <p className='sub'>
-            Last post was{' '}
-            <b className='mono' suppressHydrationWarning>
-              {t ? `${t.d}d ${pad2(t.h)}h ${pad2(t.m)}m ${pad2(t.s)}s` : '——'}
-            </b>{' '}
-            ago. Everything else is a draft.
+            Hi, I’m Toan. I’ve rebuilt this blog five times and written three posts — so I’m
+            starting with the first half: reading a lot.
           </p>
         </div>
 
         <div className='hero-bottom'>
-          <p className='hint'>
-            <span>Drag the drafts around. Three were actually published — find them.</span>
-            <span className='found' aria-label={`${found.length} of 3 found`}>
-              {posts.map((p, i) => (
-                <i key={p.title} className={i < found.length ? 'on' : ''} />
-              ))}
-            </span>
-          </p>
+          <p className='hint'>Drag the drafts around. Tap a book to see what I’m reading.</p>
           <div className='dock' role='group' aria-label='Blog controls'>
             <button type='button' onClick={() => addDraft()}>
               <span aria-hidden>+</span> New draft
@@ -310,11 +307,6 @@ export default function Hero() {
         {toast && (
           <div key={toast.key} className='toast'>
             <span>{toast.text}</span>
-            {toast.href && (
-              <a href={toast.href} target='_blank' rel='noreferrer'>
-                {toast.link} →
-              </a>
-            )}
           </div>
         )}
       </div>

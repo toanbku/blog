@@ -12,7 +12,7 @@ const serif = Instrument_Serif({
 })
 
 const description =
-  'Built it five times. Wrote three posts. A physics playground of every blog post Toan Ho never finished.'
+  'Rebuilt this blog five times, wrote three posts. A physics playground of unfinished drafts — and the books I’m reading.'
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.toanbku.com'),

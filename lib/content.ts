@@ -1,8 +1,9 @@
-// Everything on this page is real. Dates & commit hashes come from `git log`,
-// posts come from the old Notion-powered site.
+// Dates & commit hashes come from `git log`, posts from the old Notion site,
+// books from my reading list.
 
 export const BLOG_BORN = '2022-06-25T00:00:00+07:00'
 export const LAST_POST = '2024-04-30T14:08:41+07:00'
+export const READING_SINCE = '2026-08-23T00:00:00+07:00'
 
 export const ARCHIVE_URL =
   'https://toan-ho.notion.site/Toan-Ho-Blog-76e5a1b0ab35411487a6260d89ff4255'
@@ -18,6 +19,90 @@ export const posts = [
   { title: 'Closure', date: 'Jan 28 2023' },
   { title: 'New Journey, New …Me', date: 'Apr 30 2024' }
 ]
+
+// `*…*` is set in italics.
+export const quotes = [
+  {
+    text: 'If you want to be a writer, you must do two things above all others: *read a lot and write a lot.*',
+    by: 'Stephen King',
+    source: 'On Writing'
+  },
+  { text: 'Perfect is the enemy *of good.*', by: 'Voltaire' },
+  { text: 'Real artists *ship.*', by: 'Steve Jobs' },
+  {
+    text: 'A reader lives a thousand lives before he dies. *The man who never reads lives only one.*',
+    by: 'George R.R. Martin',
+    source: 'A Dance with Dragons'
+  },
+  { text: 'Make it work, make it right, *make it fast.*', by: 'Kent Beck' },
+  {
+    text: 'Any sufficiently advanced technology is *indistinguishable from magic.*',
+    by: 'Arthur C. Clarke'
+  }
+]
+
+export type Book = {
+  title: string
+  author?: string
+  blurb?: string
+  status: 'reading' | 'done' | 'next'
+  color: string
+  ink: string
+}
+
+export const books: Book[] = [
+  {
+    title: 'Plato và Con Thú Mỏ Vịt Bước Vào Quán Bar',
+    author: 'Thomas Cathcart & Daniel Klein',
+    blurb: 'Philosophy, explained through jokes.',
+    status: 'reading',
+    color: '#2F5BFF',
+    ink: '#F2F4FF'
+  },
+  {
+    title: 'Frontend Unicorn',
+    status: 'reading',
+    color: '#FF9EC0',
+    ink: '#1B1814'
+  },
+  {
+    title: 'Cryptocurrency Investing',
+    author: 'Crypto Engineer',
+    status: 'done',
+    color: '#1B1814',
+    ink: '#F2C24A'
+  },
+  {
+    title: 'Sapiens',
+    author: 'Yuval Noah Harari',
+    blurb: 'A brief history of humankind.',
+    status: 'next',
+    color: '#F6F0E3',
+    ink: '#1B1814'
+  },
+  {
+    title: 'Remote',
+    author: 'Jason Fried & David Heinemeier Hansson',
+    blurb: 'Office not required.',
+    status: 'next',
+    color: '#FF5A1F',
+    ink: '#FFF4E8'
+  },
+  {
+    title: 'How to Live on 24 Hours a Day',
+    author: 'Arnold Bennett',
+    blurb: 'A 1908 guide to making time for what matters.',
+    status: 'next',
+    color: '#93D9B5',
+    ink: '#1B1814'
+  }
+]
+
+export const statusLabel: Record<Book['status'], string> = {
+  reading: 'Reading',
+  done: 'Finished',
+  next: 'Up next'
+}
 
 export const drafts = [
   'Hello World (draft #47)',

@@ -22,80 +22,78 @@ export default async function Image() {
   ])
 
   return new ImageResponse(
-    (
-      <div
-        style={{
-          width: '100%',
-          height: '100%',
-          display: 'flex',
-          position: 'relative',
-          background: '#EFE9DD',
-          backgroundImage: 'radial-gradient(rgba(27,24,20,0.14) 1.5px, transparent 1.5px)',
-          backgroundSize: '28px 28px',
-          padding: 72,
-          fontFamily: 'Geist'
-        }}
-      >
-        {cards.map((c) => (
-          <div
-            key={c.t}
-            style={{
-              position: 'absolute',
-              left: c.x,
-              top: c.y,
-              width: 300,
-              height: 150,
-              display: 'flex',
-              alignItems: 'flex-end',
-              padding: 20,
-              borderRadius: 14,
-              background: c.bg,
-              color: c.ink,
-              fontSize: 26,
-              transform: `rotate(${c.r}deg)`,
-              boxShadow: '0 18px 30px -12px rgba(27,24,20,0.45)'
-            }}
-          >
-            {c.t}
-          </div>
-        ))}
-        <div style={{ display: 'flex', flexDirection: 'column', color: '#1B1814' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14, fontSize: 28 }}>
-            <div
-              style={{
-                width: 22,
-                height: 22,
-                borderRadius: 5,
-                background: '#FF5A1F',
-                transform: 'rotate(-12deg)',
-                boxShadow: '5px 4px 0 #1B1814'
-              }}
-            />
-            Toan Ho
-          </div>
+    <div
+      style={{
+        width: '100%',
+        height: '100%',
+        display: 'flex',
+        position: 'relative',
+        background: '#EFE9DD',
+        backgroundImage: 'radial-gradient(rgba(27,24,20,0.14) 1.5px, transparent 1.5px)',
+        backgroundSize: '28px 28px',
+        padding: 72,
+        fontFamily: 'Geist'
+      }}
+    >
+      {cards.map((c) => (
+        <div
+          key={c.t}
+          style={{
+            position: 'absolute',
+            left: c.x,
+            top: c.y,
+            width: 300,
+            height: 150,
+            display: 'flex',
+            alignItems: 'flex-end',
+            padding: 20,
+            borderRadius: 14,
+            background: c.bg,
+            color: c.ink,
+            fontSize: 26,
+            transform: `rotate(${c.r}deg)`,
+            boxShadow: '0 18px 30px -12px rgba(27,24,20,0.45)'
+          }}
+        >
+          {c.t}
+        </div>
+      ))}
+      <div style={{ display: 'flex', flexDirection: 'column', color: '#1B1814' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14, fontSize: 28 }}>
           <div
             style={{
-              display: 'flex',
-              flexDirection: 'column',
-              marginTop: 56,
-              fontFamily: 'Instrument Serif',
-              fontSize: 112,
-              lineHeight: 0.92,
-              letterSpacing: -3
+              width: 22,
+              height: 22,
+              borderRadius: 5,
+              background: '#FF5A1F',
+              transform: 'rotate(-12deg)',
+              boxShadow: '5px 4px 0 #1B1814'
             }}
-          >
-            <div style={{ display: 'flex' }}>
-              Built it&nbsp;<span style={{ fontStyle: 'italic', color: '#FF5A1F' }}>five</span>
-              &nbsp;times.
-            </div>
-            <div style={{ display: 'flex' }}>
-              Wrote&nbsp;<span style={{ fontStyle: 'italic', color: '#FF5A1F' }}>three</span>
-              &nbsp;posts.
-            </div>
+          />
+          Toan Ho
+        </div>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            marginTop: 56,
+            fontFamily: 'Instrument Serif',
+            fontSize: 112,
+            lineHeight: 0.92,
+            letterSpacing: -3
+          }}
+        >
+          <div style={{ display: 'flex' }}>
+            Built it&nbsp;<span style={{ fontStyle: 'italic', color: '#FF5A1F' }}>five</span>
+            &nbsp;times.
+          </div>
+          <div style={{ display: 'flex' }}>
+            Wrote&nbsp;<span style={{ fontStyle: 'italic', color: '#FF5A1F' }}>three</span>
+            &nbsp;posts.
           </div>
         </div>
       </div>
-    ),
+    </div>,
     {
       ...size,
       fonts: [

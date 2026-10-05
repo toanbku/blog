@@ -4,18 +4,14 @@ import { Suspense, useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { Canvas, useFrame, useThree, type ThreeEvent } from '@react-three/fiber'
 import { Environment, Lightformer, RoundedBox, Text } from '@react-three/drei'
-import {
-  CuboidCollider,
-  Physics,
-  RigidBody,
-  type RapierRigidBody
-} from '@react-three/rapier'
+import { CuboidCollider, Physics, RigidBody, type RapierRigidBody } from '@react-three/rapier'
 
 export type BlockSpec = {
   id: number
-  kind: 'draft' | 'post'
+  kind: 'draft' | 'book'
   title: string
   tag: string
+  author?: string
   color: string
   ink: string
   size: [number, number, number]
@@ -37,6 +33,7 @@ const SANS = '/fonts/geist-600.ttf'
 const MONO = '/fonts/geist-mono-500.ttf'
 const LIFT = 1.1
 const MAX_SPEED = 28
+const PAGES = '#F3ECDD'
 
 type BodyRef = React.RefObject<RapierRigidBody | null>
 
@@ -66,22 +63,7 @@ export default function Scene({ blocks, bounds, shake, active, onBlockClick }: P
       }}
     >
       <Rig bounds={bounds} />
-
-      <ambientLight intensity={0.55} />
-      <directionalLight
-        castShadow
-        position={[5, 16, 9]}
-        intensity={2.1}
-        shadow-mapSize={[2048, 2048]}
-        shadow-camera-left={-14}
-        shadow-camera-right={14}
-        shadow-camera-top={14}
-        shadow-camera-bottom={-14}
-        shadow-camera-near={1}
-        shadow-camera-far={50}
-        shadow-bias={-0.0004}
-        shadow-radius={6}
-      />
+      <Lights />
       <Environment resolution={256}>
         <Lightformer intensity={2.2} position={[0, 8, 6]} scale={[14, 5, 1]} />
         <Lightformer
@@ -107,12 +89,7 @@ export default function Scene({ blocks, bounds, shake, active, onBlockClick }: P
       <Suspense fallback={null}>
         <Physics gravity={[0, -24, 0]} paused={!active}>
           <World key={`${bounds.w}:${bounds.d}`} bounds={bounds} />
-          <Pile
-            blocks={blocks}
-            bounds={bounds}
-            shake={shake}
-            onBlockClick={onBlockClick}
-          />
+          <Pile blocks={blocks} bounds={bounds} shake={shake} onBlockClick={onBlockClick} />
         </Physics>
       </Suspense>
     </Canvas>
@@ -132,18 +109,36 @@ function Rig({ bounds }: { bounds: Bounds }) {
     const halfH = Math.atan(Math.tan(halfV) * aspect)
     const dist = (bounds.w + 0.4) / Math.tan(halfH)
     const elev = THREE.MathUtils.degToRad(portrait ? 56 : 48)
-    const target = new THREE.Vector3(0, dist * (portrait ? 0.1 : 0.135), -bounds.d * 0.1)
+    const target = new THREE.Vector3(0, dist * (portrait ? 0.1 : 0.155), -bounds.d * 0.1)
 
-    camera.position.set(
-      0,
-      target.y + Math.sin(elev) * dist,
-      target.z + Math.cos(elev) * dist
-    )
+    camera.position.set(0, target.y + Math.sin(elev) * dist, target.z + Math.cos(elev) * dist)
     camera.lookAt(target)
     camera.updateProjectionMatrix()
   }, [camera, size, bounds])
 
   return null
+}
+
+function Lights() {
+  return (
+    <>
+      <ambientLight intensity={0.55} />
+      <directionalLight
+        castShadow
+        position={[5, 16, 9]}
+        intensity={2.1}
+        shadow-mapSize={[2048, 2048]}
+        shadow-camera-left={-14}
+        shadow-camera-right={14}
+        shadow-camera-top={14}
+        shadow-camera-bottom={-14}
+        shadow-camera-near={1}
+        shadow-camera-far={50}
+        shadow-bias={-0.0004}
+        shadow-radius={6}
+      />
+    </>
+  )
 }
 
 function World({ bounds: { w, d } }: { bounds: Bounds }) {
@@ -158,12 +153,7 @@ function World({ bounds: { w, d } }: { bounds: Bounds }) {
   )
 }
 
-function Pile({
-  blocks,
-  bounds,
-  shake,
-  onBlockClick
-}: Omit<Props, 'active'>) {
+function Pile({ blocks, bounds, shake, onBlockClick }: Omit<Props, 'active'>) {
   const bodies = useRef(new Map<number, BodyRef>())
   const drag = useRef<Drag | null>(null)
   const ndc = useRef(new THREE.Vector2())
@@ -200,7 +190,7 @@ function Pile({
       drag.current = null
       document.body.style.cursor = ''
       if (!d.moved && performance.now() - d.downAt < 400) {
-        hop(d.body)
+        hop(d.body, 7)
         clickRef.current(d.id)
       }
     }
@@ -302,7 +292,7 @@ function Pile({
   return (
     <>
       {blocks.map((spec) => (
-        <Block
+        <Body
           key={spec.id}
           spec={spec}
           register={(ref) => {
@@ -319,16 +309,20 @@ function Pile({
   )
 }
 
-function hop(body: RapierRigidBody) {
+function hop(body: RapierRigidBody, strength: number) {
   const m = body.mass()
-  body.applyImpulse({ x: 0, y: 7 * m, z: 0 }, true)
+  body.applyImpulse({ x: 0, y: strength * m, z: 0 }, true)
   body.applyTorqueImpulse(
-    { x: (Math.random() - 0.5) * m, y: (Math.random() - 0.5) * 2 * m, z: (Math.random() - 0.5) * m },
+    {
+      x: (Math.random() - 0.5) * m,
+      y: (Math.random() - 0.5) * 2 * m,
+      z: (Math.random() - 0.5) * m
+    },
     true
   )
 }
 
-function Block({
+function Body({
   spec,
   register,
   onDown,
@@ -341,7 +335,6 @@ function Block({
 }) {
   const ref = useRef<RapierRigidBody>(null)
   const [w, h, d] = spec.size
-  const post = spec.kind === 'post'
 
   const registerRef = useRef(register)
   useEffect(() => {
@@ -369,60 +362,176 @@ function Block({
         }}
         onPointerOut={() => onHover(false)}
       >
-        <RoundedBox args={[w, h, d]} radius={Math.min(0.09, h / 2.4)} smoothness={3} castShadow receiveShadow>
-          <meshPhysicalMaterial
-            color={spec.color}
-            roughness={post ? 0.25 : 0.48}
-            metalness={post ? 0.12 : 0}
-            emissive={post ? '#ff9d00' : '#000000'}
-            emissiveIntensity={post ? 0.12 : 0}
-            clearcoat={post ? 1 : 0.55}
-            clearcoatRoughness={0.3}
-          />
-        </RoundedBox>
-        <Face spec={spec} side='top' />
-        <Face spec={spec} side='bottom' />
+        {spec.kind === 'book' ? <BookMesh spec={spec} /> : <CardMesh spec={spec} />}
       </group>
     </RigidBody>
   )
 }
 
-function Face({ spec, side }: { spec: BlockSpec; side: 'top' | 'bottom' }) {
+function CardMesh({ spec }: { spec: BlockSpec }) {
   const [w, h, d] = spec.size
-  const pad = 0.15
-  const top = side === 'top'
-  const post = spec.kind === 'post'
+  return (
+    <>
+      <RoundedBox
+        args={[w, h, d]}
+        radius={Math.min(0.09, h / 2.4)}
+        smoothness={3}
+        castShadow
+        receiveShadow
+      >
+        <meshPhysicalMaterial
+          color={spec.color}
+          roughness={0.48}
+          clearcoat={0.55}
+          clearcoatRoughness={0.3}
+        />
+      </RoundedBox>
+      {(['top', 'bottom'] as const).map((side) => (
+        <Face key={side} side={side} h={h}>
+          <Text
+            font={MONO}
+            fontSize={0.08}
+            letterSpacing={0.08}
+            color={spec.ink}
+            fillOpacity={0.72}
+            anchorX='left'
+            anchorY='top'
+            position={[-w / 2 + 0.15, d / 2 - 0.15, 0]}
+          >
+            {spec.tag}
+          </Text>
+          <Text
+            font={SANS}
+            fontSize={0.18}
+            lineHeight={1.08}
+            letterSpacing={-0.02}
+            maxWidth={w - 0.3}
+            color={spec.ink}
+            anchorX='left'
+            anchorY='bottom'
+            position={[-w / 2 + 0.15, -d / 2 + 0.15, 0]}
+          >
+            {spec.title}
+          </Text>
+        </Face>
+      ))}
+    </>
+  )
+}
 
+// A hardcover: two boards, a spine and a cream page block that's a touch smaller.
+function BookMesh({ spec }: { spec: BlockSpec }) {
+  const [w, h, d] = spec.size
+  const board = 0.045
+  const pad = 0.16
+
+  return (
+    <>
+      <mesh position={[0.02, 0, 0]} castShadow receiveShadow>
+        <boxGeometry args={[w - 0.06, h - board * 2, d - 0.08]} />
+        <meshStandardMaterial color={PAGES} roughness={0.95} />
+      </mesh>
+      {[1, -1].map((s) => (
+        <RoundedBox
+          key={s}
+          args={[w, board, d]}
+          radius={0.02}
+          smoothness={2}
+          position={[0, s * (h / 2 - board / 2), 0]}
+          castShadow
+          receiveShadow
+        >
+          <meshPhysicalMaterial color={spec.color} roughness={0.62} clearcoat={0.25} />
+        </RoundedBox>
+      ))}
+      <RoundedBox
+        args={[board * 1.4, h, d]}
+        radius={0.02}
+        smoothness={2}
+        position={[-w / 2 + board * 0.7, 0, 0]}
+        castShadow
+      >
+        <meshPhysicalMaterial color={spec.color} roughness={0.62} clearcoat={0.25} />
+      </RoundedBox>
+
+      {(['top', 'bottom'] as const).map((side) => (
+        <Face key={side} side={side} h={h}>
+          <Text
+            font={MONO}
+            fontSize={0.075}
+            letterSpacing={0.08}
+            color={spec.ink}
+            fillOpacity={0.75}
+            anchorX='left'
+            anchorY='top'
+            position={[-w / 2 + pad, d / 2 - pad, 0]}
+          >
+            {spec.tag}
+          </Text>
+          <Text
+            font={SANS}
+            fontSize={0.165}
+            lineHeight={1.08}
+            letterSpacing={-0.02}
+            maxWidth={w - pad * 2}
+            color={spec.ink}
+            anchorX='left'
+            anchorY='bottom'
+            position={[-w / 2 + pad, -d / 2 + pad + 0.16, 0]}
+          >
+            {spec.title}
+          </Text>
+          {spec.author && (
+            <Text
+              font={MONO}
+              fontSize={0.07}
+              maxWidth={w - pad * 2}
+              color={spec.ink}
+              fillOpacity={0.75}
+              anchorX='left'
+              anchorY='bottom'
+              position={[-w / 2 + pad, -d / 2 + pad, 0]}
+            >
+              {spec.author.toUpperCase()}
+            </Text>
+          )}
+        </Face>
+      ))}
+
+      <Text
+        font={SANS}
+        fontSize={Math.min(0.12, h * 0.42)}
+        maxWidth={d - 0.3}
+        color={spec.ink}
+        anchorX='center'
+        anchorY='middle'
+        position={[-w / 2 - 0.003, 0, 0]}
+        rotation={[0, -Math.PI / 2, 0]}
+        whiteSpace='nowrap'
+        clipRect={[-(d - 0.3) / 2, -h / 2, (d - 0.3) / 2, h / 2]}
+      >
+        {spec.title}
+      </Text>
+    </>
+  )
+}
+
+function Face({
+  side,
+  h,
+  children
+}: {
+  side: 'top' | 'bottom'
+  h: number
+  children: React.ReactNode
+}) {
+  const top = side === 'top'
   return (
     <group
       position={[0, top ? h / 2 + 0.006 : -h / 2 - 0.006, 0]}
       rotation={[top ? -Math.PI / 2 : Math.PI / 2, 0, 0]}
     >
-      <Text
-        font={MONO}
-        fontSize={0.08}
-        letterSpacing={0.08}
-        color={spec.ink}
-        fillOpacity={0.72}
-        anchorX='left'
-        anchorY='top'
-        position={[-w / 2 + pad, d / 2 - pad, 0]}
-      >
-        {spec.tag}
-      </Text>
-      <Text
-        font={SANS}
-        fontSize={post ? 0.21 : 0.18}
-        lineHeight={1.05}
-        letterSpacing={-0.025}
-        maxWidth={w - pad * 2}
-        color={spec.ink}
-        anchorX='left'
-        anchorY='bottom'
-        position={[-w / 2 + pad, -d / 2 + pad, 0]}
-      >
-        {spec.title}
-      </Text>
+      {children}
     </group>
   )
 }
